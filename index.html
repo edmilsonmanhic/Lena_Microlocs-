@@ -1,0 +1,906 @@
+<!doctype html>
+<html lang="pt">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="Link na bio com redes sociais, localização e catálogo de preços." />
+  <title>Lena Microlocs</title>
+
+  <style>
+    :root{
+      --bg:#ffffff;
+      --text:#121212;
+      --muted:#6b7280;
+      --orange:#F15D22;         /* laranja queimado */
+      --orange-2:#ff7a45;
+      --stroke: rgba(17,24,39,.10);
+      --shadow: 0 10px 30px rgba(0,0,0,.08);
+      --radius: 18px;
+      --max: 1060px;
+      --card: rgba(255,255,255,.92);
+    }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Helvetica Neue", sans-serif;
+      color:var(--text);
+      background:var(--bg);
+    }
+    a{ color:inherit; text-decoration:none; }
+    button{ font-family:inherit; }
+
+    /* Top bar */
+    .topbar{
+      position:sticky;
+      top:0;
+      z-index:50;
+      backdrop-filter: blur(10px);
+      background: rgba(255,255,255,.78);
+      border-bottom: 1px solid var(--stroke);
+    }
+    .topbar-inner{
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 14px 18px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:10px;
+      font-weight: 900;
+      letter-spacing:.2px;
+    }
+    .logo-dot{
+      width:12px; height:12px; border-radius:999px;
+      background: var(--orange);
+      box-shadow: 0 0 0 6px rgba(241,93,34,.12);
+    }
+    .nav{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; }
+    .nav a{
+      padding:10px 12px;
+      border-radius: 999px;
+      border:1px solid var(--stroke);
+      background: rgba(255,255,255,.7);
+      font-weight:700;
+      font-size: 14px;
+      transition: transform .15s ease, background .15s ease, border-color .15s ease;
+    }
+    .nav a:hover{ transform: translateY(-1px); border-color: rgba(241,93,34,.35); }
+
+    /* Layout */
+    .container{
+      max-width: var(--max);
+      margin: 0 auto;
+      padding: 18px;
+    }
+    .page{ display:none; }
+    .page.active{ display:block; }
+
+    /* HERO with carousel background + blur */
+    .hero{
+      position:relative;
+      overflow:hidden;
+      border-radius: calc(var(--radius) + 10px);
+      box-shadow: var(--shadow);
+      border:1px solid var(--stroke);
+      min-height: 460px;
+      display:grid;
+      place-items:center;
+    }
+    .hero-bg{ position:absolute; inset:0; }
+    .hero-bg img{
+      position:absolute; inset:0;
+      width:100%; height:100%;
+      object-fit:cover;
+      opacity:0;
+      transition: opacity 900ms ease;
+      filter: blur(1px);
+      transform: scale(1.06);
+    }
+    .hero-bg img.active{ opacity:1; }
+    .hero-overlay{
+      position:absolute; inset:0;
+      background: linear-gradient(135deg, rgba(17,24,39,.60), rgba(17,24,39,.28));
+    }
+    .hero-content{
+      position:relative;
+      width:min(760px, 92%);
+      text-align:center;
+      color:#fff;
+      padding: 36px 18px;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 14px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.10);
+      backdrop-filter: blur(10px);
+      font-weight:800;
+      font-size: 13px;
+      letter-spacing:.3px;
+    }
+    .hero h1{
+      margin:14px 0 8px;
+      font-size: clamp(28px, 4.3vw, 46px);
+      line-height:1.05;
+      letter-spacing:-.8px;
+    }
+    .hero p{
+      margin:0 auto 18px;
+      max-width: 62ch;
+      font-size: 16px;
+      color: rgba(255,255,255,.92);
+      line-height:1.55;
+    }
+
+    /* Buttons */
+    .cta-row{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      justify-content:center;
+      margin-top: 14px;
+    }
+    .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      padding: 14px 16px;
+      min-width: 170px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(255,255,255,.10);
+      color:#fff;
+      font-weight: 900;
+      transition: transform .15s ease, border-color .15s ease;
+      cursor:pointer;
+      user-select:none;
+    }
+    .btn:hover{ transform: translateY(-2px); border-color: rgba(241,93,34,.55); }
+    .btn.primary{
+      background: linear-gradient(135deg, var(--orange), var(--orange-2));
+      border-color: rgba(255,255,255,.12);
+    }
+
+    /* Sections/cards */
+    .card{
+      border:1px solid var(--stroke);
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: 0 12px 26px rgba(0,0,0,.06);
+      overflow:hidden;
+    }
+    .card-inner{ padding: 16px; }
+    .section-title{
+      margin: 22px 0 10px;
+      font-size: 16px;
+      font-weight: 900;
+      letter-spacing: .2px;
+    }
+    .muted{ color: var(--muted); font-size: 14px; line-height:1.45; }
+
+    /* Social buttons */
+    .grid{ display:grid; gap: 14px; }
+    .grid.two{ grid-template-columns: repeat(2, minmax(0,1fr)); }
+    @media (max-width: 560px){ .grid.two{ grid-template-columns: 1fr; } }
+
+    .social-btn{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding: 14px 14px;
+      border-radius: 16px;
+      border: 1px solid var(--stroke);
+      background: rgba(255,255,255,.94);
+      cursor:pointer;
+      transition: transform .15s ease, border-color .15s ease;
+    }
+    .social-btn:hover{ transform: translateY(-1px); border-color: rgba(241,93,34,.35); }
+    .social-left{ display:flex; align-items:center; gap:12px; }
+    .icon{
+      width:40px; height:40px;
+      border-radius: 14px;
+      display:grid; place-items:center;
+      background: rgba(241,93,34,.12);
+      border: 1px solid rgba(241,93,34,.18);
+      flex: 0 0 auto;
+    }
+    .icon svg{ width:22px; height:22px; }
+    .chev{ opacity:.6; font-weight:900; }
+
+    /* Catalog */
+    .toolbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      padding: 14px;
+    }
+    .search{
+      flex: 1 1 260px;
+      min-width: 220px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:flex-end;
+    }
+    .search input{
+      width: min(380px, 100%);
+      padding: 12px 14px;
+      border-radius: 14px;
+      border:1px solid var(--stroke);
+      outline:none;
+      font-weight: 700;
+    }
+    .search input:focus{
+      border-color: rgba(241,93,34,.45);
+      box-shadow: 0 0 0 6px rgba(241,93,34,.12);
+    }
+
+    .catalog-section{
+      margin-top: 14px;
+    }
+    .catalog-head{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:12px;
+      padding: 16px;
+      border-bottom: 1px solid var(--stroke);
+      background: rgba(241,93,34,.06);
+    }
+    .catalog-head h3{
+      margin:0;
+      font-size: 16px;
+      font-weight: 950;
+      letter-spacing:.1px;
+    }
+    .catalog-head .muted{ margin:0; }
+
+    .table-wrap{ padding: 12px 16px 16px; }
+    table{
+      width:100%;
+      border-collapse: collapse;
+      overflow:hidden;
+      border-radius: 14px;
+      border:1px solid var(--stroke);
+      background:#fff;
+    }
+    th, td{
+      text-align:left;
+      padding: 12px 12px;
+      border-bottom: 1px solid rgba(17,24,39,.08);
+      vertical-align:top;
+      font-size: 14px;
+    }
+    th{
+      font-size: 13px;
+      letter-spacing:.2px;
+      color: rgba(17,24,39,.72);
+      background: rgba(17,24,39,.02);
+      font-weight: 900;
+    }
+    tr:last-child td{ border-bottom: none; }
+    .price{
+      font-weight: 950;
+      color: var(--orange);
+      white-space: nowrap;
+    }
+    .badge{
+      display:inline-flex;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(241,93,34,.22);
+      background: rgba(241,93,34,.10);
+      font-weight: 900;
+      font-size: 12px;
+      color: #7a2a10;
+      margin-left: 8px;
+    }
+
+    footer{
+      margin: 24px 0 18px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align:center;
+    }
+
+    /* WhatsApp floating button */
+    .wa-float{
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 60;
+      border-radius: 999px;
+      padding: 12px 14px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      background: linear-gradient(135deg, var(--orange), var(--orange-2));
+      color:#fff;
+      font-weight: 950;
+      box-shadow: 0 16px 32px rgba(241,93,34,.28);
+      border: 1px solid rgba(255,255,255,.18);
+      transition: transform .15s ease;
+    }
+    .wa-float:hover{ transform: translateY(-2px); }
+    .wa-badge{
+      width:34px; height:34px; border-radius: 999px;
+      background: rgba(255,255,255,.18);
+      display:grid; place-items:center;
+      border:1px solid rgba(255,255,255,.18);
+    }
+    .wa-badge svg{ width:18px; height:18px; }
+  </style>
+</head>
+
+<body>
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <span class="logo-dot" aria-hidden="true"></span>
+        <span id="brandName">Lena Microlocs</span>
+      </div>
+
+      <nav class="nav" aria-label="Navegação">
+        <a href="#/" data-route="/">Home</a>
+        <a href="#/catalogo" data-route="/catalogo">Catálogo</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- HOME -->
+    <section id="page-home" class="page active">
+      <div class="hero">
+        <div class="hero-bg" aria-hidden="true">
+          <!-- Troque as imagens abaixo pelas suas (links ou caminhos locais). -->
+          <img src="Primeira.jpg" alt="" class="active" />
+          <img src="Segundo.jpg" alt="" />
+          <img src="Terceiro.jpg" alt="" />
+          <div class="hero-overlay"></div>
+        </div>
+
+        <div class="hero-content">
+          <h1>Microlocs • Dreads • Produtos</h1>
+          <p>
+            Veja o catálogo de preços, siga as nossas redes e encontre a nossa localização.
+          </p>
+
+          <div class="cta-row">
+            <a class="btn primary" href="#/catalogo">
+              <!-- Catalog icon -->
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M6 7h12M6 12h12M6 17h9" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                <path d="M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" stroke="white" stroke-width="2" opacity=".55"/>
+              </svg>
+              Catálogo
+            </a>
+
+            <button class="btn" id="btnLocation" type="button">
+              <!-- Location icon -->
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M12 22s7-4.5 7-12a7 7 0 1 0-14 0c0 7.5 7 12 7 12Z" stroke="white" stroke-width="2"/>
+                <path d="M12 13a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" stroke="white" stroke-width="2"/>
+              </svg>
+              Localização
+            </button>
+
+            <a class="btn" id="ctaWhatsAppTop" target="_blank" rel="noopener">
+              <!-- WhatsApp icon -->
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M20 11.7c0 4.55-3.9 8.24-8.7 8.24-1.46 0-2.83-.33-4.03-.93L4 20l1.03-3.06A8.03 8.03 0 0 1 2.6 11.7C2.6 7.15 6.5 3.46 11.3 3.46S20 7.15 20 11.7Z" stroke="white" stroke-width="2" opacity=".85"/>
+                <path d="M8.5 9.2c.2-.5.4-.5.8-.5h.6c.2 0 .5.1.6.5l.5 1.2c.1.3.1.6-.1.8l-.4.5c-.2.2-.2.5 0 .7.5.8 1.2 1.5 2 2 .2.2.5.2.7 0l.5-.4c.2-.2.5-.2.8-.1l1.2.5c.4.1.5.4.5.6v.6c0 .4 0 .6-.5.8-.6.3-1.8.5-3.5-.3-1.7-.8-3.4-2.5-4.2-4.2-.8-1.7-.6-2.9-.3-3.5Z" fill="white"/>
+              </svg>
+              WhatsApp
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <h2 class="section-title">Redes Sociais</h2>
+      <div class="grid two">
+        <a class="social-btn" id="linkInstagram" target="_blank" rel="noopener">
+          <div class="social-left">
+            <div class="icon" aria-hidden="true">
+              <!-- Instagram SVG -->
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5Z" stroke="currentColor" stroke-width="2"/>
+                <path d="M12 16a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" stroke-width="2"/>
+                <path d="M17.5 6.5h.01" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div>
+              <div style="font-weight:950;">Instagram</div>
+              <div class="muted">@lena_microlocs</div>
+            </div>
+          </div>
+          <div class="chev">›</div>
+        </a>
+
+        <a class="social-btn" id="linkFacebook" target="_blank" rel="noopener">
+          <div class="social-left">
+            <div class="icon" aria-hidden="true">
+              <!-- Facebook SVG -->
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M14 8h2V5h-2c-2.2 0-4 1.8-4 4v3H8v3h2v7h3v-7h2.2l.8-3H13V9c0-.6.4-1 1-1Z" fill="currentColor"/>
+              </svg>
+            </div>
+            <div>
+              <div style="font-weight:950;">Facebook</div>
+              <div class="muted">/Lena Microlocs</div>
+            </div>
+          </div>
+          <div class="chev">›</div>
+        </a>
+
+        <a class="social-btn" id="linkTikTok" target="_blank" rel="noopener">
+          <div class="social-left">
+            <div class="icon" aria-hidden="true">
+              <!-- TikTok SVG (simple) -->
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M14 3v10.2a3.8 3.8 0 1 1-3-3.7V7.2A6.7 6.7 0 1 0 17 13V7.6c1.1 1 2.5 1.6 4 1.7V6.3c-2-.2-3.6-1.4-4.4-3.3H14Z" fill="currentColor"/>
+              </svg>
+            </div>
+            <div>
+              <div style="font-weight:950;">TikTok</div>
+              <div class="muted">@lena_microlocs</div>
+            </div>
+          </div>
+          <div class="chev">›</div>
+        </a>
+
+        <a class="social-btn" id="linkWhatsApp" target="_blank" rel="noopener">
+          <div class="social-left">
+            <div class="icon" aria-hidden="true">
+              <!-- WhatsApp SVG -->
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M20 11.7c0 4.55-3.9 8.24-8.7 8.24-1.46 0-2.83-.33-4.03-.93L4 20l1.03-3.06A8.03 8.03 0 0 1 2.6 11.7C2.6 7.15 6.5 3.46 11.3 3.46S20 7.15 20 11.7Z" stroke="currentColor" stroke-width="2"/>
+                <path d="M8.5 9.2c.2-.5.4-.5.8-.5h.6c.2 0 .5.1.6.5l.5 1.2c.1.3.1.6-.1.8l-.4.5c-.2.2-.2.5 0 .7.5.8 1.2 1.5 2 2 .2.2.5.2.7 0l.5-.4c.2-.2.5-.2.8-.1l1.2.5c.4.1.5.4.5.6v.6c0 .4 0 .6-.5.8-.6.3-1.8.5-3.5-.3-1.7-.8-3.4-2.5-4.2-4.2-.8-1.7-.6-2.9-.3-3.5Z" fill="currentColor"/>
+              </svg>
+            </div>
+            <div>
+              <div style="font-weight:950;">WhatsApp</div>
+              <div class="muted">Fale agora</div>
+            </div>
+          </div>
+          <div class="chev">›</div>
+        </a>
+      </div>
+
+      <footer>© <span id="year"></span> <span id="brandName2">Sua Marca</span>. Todos os direitos reservados.</footer>
+    </section>
+
+    <!-- CATALOGO -->
+    <section id="page-catalogo" class="page">
+      <div class="card">
+        <div class="toolbar">
+          <div>
+            <div style="font-weight:950; font-size:18px;">Catálogo de Preços</div>
+            <div class="muted">Microlocs, Dreads e Produtos</div>
+          </div>
+
+          <div class="search">
+            <input id="catalogSearch" type="search" placeholder="Pesquisar (ex.: twist, retocar, óleo, lavar)..." />
+          </div>
+        </div>
+      </div>
+
+      <div id="catalogContainer"></div>
+
+      <footer>Se quiser, eu também organizo isso com fotos dos serviços/produtos.</footer>
+    </section>
+  </main>
+
+  <!-- WhatsApp Floating Button -->
+  <a class="wa-float" id="waFloat" target="_blank" rel="noopener">
+    <span class="wa-badge" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none">
+        <path d="M20 11.7c0 4.55-3.9 8.24-8.7 8.24-1.46 0-2.83-.33-4.03-.93L4 20l1.03-3.06A8.03 8.03 0 0 1 2.6 11.7C2.6 7.15 6.5 3.46 11.3 3.46S20 7.15 20 11.7Z" stroke="white" stroke-width="2" opacity=".9"/>
+        <path d="M8.5 9.2c.2-.5.4-.5.8-.5h.6c.2 0 .5.1.6.5l.5 1.2c.1.3.1.6-.1.8l-.4.5c-.2.2-.2.5 0 .7.5.8 1.2 1.5 2 2 .2.2.5.2.7 0l.5-.4c.2-.2.5-.2.8-.1l1.2.5c.4.1.5.4.5.6v.6c0 .4 0 .6-.5.8-.6.3-1.8.5-3.5-.3-1.7-.8-3.4-2.5-4.2-4.2-.8-1.7-.6-2.9-.3-3.5Z" fill="white"/>
+      </svg>
+    </span>
+    WhatsApp
+  </a>
+
+  <script>
+    /***********************
+     * CONFIGURAÇÕES RÁPIDAS
+     ***********************/
+    const CONFIG = {
+      brandName: "Lena Microlocs",
+      instagram: "https://www.instagram.com/lena_microlocs?igsh=cjQybGk2Njl4Y3cz&utm_source=qr",
+      facebook: "https://www.facebook.com/share/1FL65LJT8o/?mibextid=wwXIfr",
+      tiktok: "https://www.tiktok.com/@lenamicrolocs?_r=1&_t=ZS-94DRMw2Uj5x",
+      whatsappNumber: "25844728428", // Ex.: 258844728428 (sem +)
+      whatsappMessage: "Olá! Quero agendar/consultar preços. ✨",
+      mapsUrl: "https://maps.google.com/maps?q=-25.961780548095703%2C32.4731330871582&z=17&hl=pt-BR",
+    };
+
+    /***********************
+     * DADOS ORGANIZADOS (CATÁLOGO)
+     ***********************/
+    const CATALOG = [
+      {
+        title: "Instalar Microlocs",
+        note: "Escolha o método e o volume do cabelo.",
+        groups: [
+          {
+            label: "Método Twist",
+            rows: [
+              ["Cabelo muito pouco", "1.500mt"],
+              ["Cabelo pouco", "2.000mt"],
+              ["Cabelo normal", "2.500mt"],
+              ["Cabelo cheio", "3.000mt"],
+              ["Cabelo muito cheio", "3.500mt"],
+            ],
+          },
+          {
+            label: "Método Piter",
+            rows: [
+              ["Cabelo muito pouco", "2.000mt"],
+              ["Cabelo pouco", "2.500mt"],
+              ["Cabelo normal", "3.000mt"],
+              ["Cabelo cheio", "3.500mt"],
+              ["Cabelo muito cheio", "4.000mt"],
+            ],
+          },
+          {
+            label: "Interlock / Sistelock",
+            rows: [
+              ["Cabelo muito pouco", "2.500mt"],
+              ["Cabelo pouco", "3.000mt"],
+              ["Cabelo normal", "3.500mt"],
+              ["Cabelo cheio", "4.000mt"],
+              ["Cabelo muito cheio", "4.500mt"],
+            ],
+          },
+        ],
+      },
+
+      {
+        title: "Retocar Microlocs",
+        note: "Valores por volume + condição.",
+        groups: [
+          {
+            label: "Cabelo muito pouco",
+            rows: [
+              ["Normal", "500mt"],
+              ["Com estragos", "800mt"],
+              ["Com muitos estragos", "1.000mt"],
+            ],
+          },
+          {
+            label: "Cabelo pouco",
+            rows: [
+              ["Normal", "800mt"],
+              ["Com estrago", "1.000mt"],
+              ["Com muito estrago", "1.200mt"],
+            ],
+          },
+          {
+            label: "Cabelo normal",
+            rows: [
+              ["Normal", "1.000mt"],
+              ["Com estrago", "1.200mt"],
+              ["Com muito estrago", "1.300mt"],
+            ],
+          },
+          {
+            label: "Cabelo cheio",
+            rows: [
+              ["Normal", "1.200mt"],
+              ["Com estrago", "1.500mt"],
+              ["Com muito estrago", "1.800mt"],
+            ],
+          },
+          {
+            label: "Cabelo muito cheio",
+            rows: [
+              ["Normal", "1.500mt"],
+              ["Com estrago", "1.800mt"],
+              ["Com muito estrago", "2.000mt"],
+            ],
+          },
+        ],
+      },
+
+      {
+        title: "Dreads",
+        note: "Retocar / Iniciar / Colocar",
+        groups: [
+          {
+            label: "Retocar dreads com gel",
+            rows: [
+              ["Com gel do salão", "300mt"],
+              ["Com gel da cliente", "250mt"],
+            ],
+          },
+          {
+            label: "Retocar dreads com crochet",
+            rows: [
+              ["Crochê simples", "500mt"],
+              ["Crochê com gel", "600mt"],
+              ["Crochê da raiz até pontas", "800mt"],
+            ],
+          },
+          {
+            label: "Iniciar dreads",
+            rows: [
+              ["Para pouco cabelo", "500mt"],
+              ["Para cabelo normal", "750mt"],
+              ["Para cabelo cheio", "1.000mt"],
+            ],
+          },
+          {
+            label: "Colocar dreads",
+            rows: [
+              ["Aplicação", "1.000mt"],
+            ],
+          },
+        ],
+      },
+
+      {
+        title: "Penteado",
+        note: "",
+        groups: [
+          {
+            label: "Opções",
+            rows: [
+              ["Penteado normal", "100mt"],
+              ["Twista normal", "100mt"],
+              ["Twista amarrado", "150mt"],
+              ["Texturização com gel do Salão", "400mt"],
+              ["Texturização com gel da cliente", "300mt"],
+            ],
+          },
+        ],
+      },
+
+      {
+        title: "Pinturas",
+        note: "",
+        groups: [
+          {
+            label: "Opções",
+            rows: [
+              ["Pintar com preto", "100mt/pacote"],
+              ["Pintar pontas com loiro/ruivo", "500mt"],
+              ["Pintar da raiz até as pontas", "1.000mt"],
+            ],
+          },
+        ],
+      },
+
+      {
+        title: "Lavar",
+        note: "",
+        groups: [
+          {
+            label: "Opções",
+            rows: [
+              ["Lavar dreads", "100mt"],
+              ["Lavar Microlocs", "100mt"],
+              ["Lavar cabelo normal", "150mt"],
+            ],
+          },
+        ],
+      },
+
+      {
+        title: "Tratamento",
+        note: "",
+        groups: [
+          {
+            label: "Opções",
+            rows: [
+              ["Microlocs", "500mt"],
+              ["Dreads", "400mt"],
+              ["Cabelo normal", "350mt"],
+            ],
+          },
+        ],
+      },
+
+      {
+        title: "Produtos à venda",
+        note: "Tamanhos e preços",
+        groups: [
+          {
+            label: "Aloe bomba",
+            rows: [
+              ["50 ml", "250mt"],
+              ["100 ml", "400mt"],
+              ["300 ml", "1.200mt"],
+            ],
+          },
+          {
+            label: "Óleo de alecrim",
+            rows: [
+              ["50 ml", "200mt"],
+              ["100 ml", "350mt"],
+              ["300 ml", "800mt"],
+            ],
+          },
+          {
+            label: "Óleo de abacate",
+            rows: [
+              ["50 ml", "350mt"],
+              ["100 ml", "600mt"],
+              ["300 ml", "1.200mt"],
+            ],
+          },
+          {
+            label: "Manteiga de karité bomba",
+            rows: [
+              ["100 g", "350mt"],
+              ["250 g", "700mt"],
+            ],
+          },
+        ],
+      },
+    ];
+
+    /***********************
+     * UTIL
+     ***********************/
+    const qs = (s, el=document) => el.querySelector(s);
+    const qsa = (s, el=document) => Array.from(el.querySelectorAll(s));
+
+    function waLink(text){
+      const msg = encodeURIComponent(text || CONFIG.whatsappMessage);
+      return `https://wa.me/${CONFIG.whatsappNumber}?text=${msg}`;
+    }
+
+    function setLinks(){
+      qs("#brandName").textContent = CONFIG.brandName;
+      qs("#brandName2").textContent = CONFIG.brandName;
+      qs("#year").textContent = new Date().getFullYear();
+
+      qs("#linkInstagram").href = CONFIG.instagram;
+      qs("#linkFacebook").href = CONFIG.facebook;
+      qs("#linkTikTok").href = CONFIG.tiktok;
+
+      const wa = waLink(CONFIG.whatsappMessage);
+      qs("#linkWhatsApp").href = wa;
+      qs("#waFloat").href = wa;
+      qs("#ctaWhatsAppTop").href = wa;
+    }
+
+    /***********************
+     * ROUTER (Home + Catálogo)
+     ***********************/
+    function route(){
+      const hash = location.hash.replace("#", "") || "/";
+      const pages = { "/": "page-home", "/catalogo": "page-catalogo" };
+      const id = pages[hash] || "page-home";
+      qsa(".page").forEach(p => p.classList.remove("active"));
+      qs("#" + id).classList.add("active");
+
+      qsa(".nav a").forEach(a => {
+        const isActive = a.getAttribute("data-route") === hash;
+        a.style.borderColor = isActive ? "rgba(241,93,34,.45)" : "rgba(17,24,39,.10)";
+        a.style.background = isActive ? "rgba(241,93,34,.10)" : "rgba(255,255,255,.7)";
+      });
+    }
+    window.addEventListener("hashchange", route);
+
+    /***********************
+     * CAROUSEL BACKGROUND
+     ***********************/
+    function startHeroCarousel(){
+      const imgs = qsa(".hero-bg img");
+      if(imgs.length <= 1) return;
+      let i = 0;
+      setInterval(() => {
+        imgs[i].classList.remove("active");
+        i = (i + 1) % imgs.length;
+        imgs[i].classList.add("active");
+      }, 4200);
+    }
+
+    /***********************
+     * RENDER CATÁLOGO (com pesquisa)
+     ***********************/
+    function normalize(s){ return (s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""); }
+
+    function sectionMatches(section, q){
+      const nq = normalize(q);
+      if(!nq) return true;
+      const hay = [
+        section.title,
+        section.note,
+        ...(section.groups||[]).flatMap(g => [g.label, ...(g.rows||[]).flat()])
+      ].join(" ");
+      return normalize(hay).includes(nq);
+    }
+
+    function renderCatalog(query=""){
+      const container = qs("#catalogContainer");
+      const filtered = CATALOG.filter(sec => sectionMatches(sec, query));
+
+      container.innerHTML = filtered.map(sec => {
+        const groupsHtml = (sec.groups || []).map(g => `
+          <div class="catalog-section card" style="margin-top:14px;">
+            <div class="catalog-head">
+              <div>
+                <h3>${sec.title} <span class="badge">${g.label}</span></h3>
+                ${sec.note ? `<p class="muted">${sec.note}</p>` : `<p class="muted"> </p>`}
+              </div>
+              <div class="muted" style="font-weight:800;">Moeda: MT</div>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Descrição</th>
+                    <th style="width:160px;">Preço</th>
+                    <th style="width:220px;">Ação</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${(g.rows||[]).map(row => {
+                    const desc = row[0];
+                    const price = row[1];
+                    const msg = `Olá! Quero ${sec.title} — ${g.label} — ${desc} (${price}).`;
+                    return `
+                      <tr>
+                        <td>${desc}</td>
+                        <td class="price">${price}</td>
+                        <td>
+                          <a href="${waLink(msg)}" target="_blank" rel="noopener"
+                             style="display:inline-flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;border:1px solid rgba(241,93,34,.22);background:rgba(241,93,34,.10);font-weight:950;color:#7a2a10;">
+                            Pedir no WhatsApp
+                          </a>
+                        </td>
+                      </tr>
+                    `;
+                  }).join("")}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `).join("");
+
+        return groupsHtml;
+      }).join("") || `
+        <div class="card" style="margin-top:14px;">
+          <div class="card-inner">
+            <div style="font-weight:950;">Nenhum resultado</div>
+            <div class="muted">Tente outra palavra (ex.: “óleo”, “retocar”, “twist”, “lavar”).</div>
+          </div>
+        </div>
+      `;
+    }
+
+    /***********************
+     * EVENTOS
+     ***********************/
+    function setupEvents(){
+      qs("#btnLocation").addEventListener("click", () => window.open(CONFIG.mapsUrl, "_blank", "noopener"));
+      qs("#catalogSearch").addEventListener("input", (e) => renderCatalog(e.target.value));
+    }
+
+    /***********************
+     * INIT
+     ***********************/
+    setLinks();
+    route();
+    startHeroCarousel();
+    setupEvents();
+    renderCatalog("");
+  </script>
+</body>
+</html>
